@@ -26,3 +26,6 @@ python/test_keygen.py
 # Test scratch files
 test.png
 test_pdf.pdf
+
+# Release zips go to GitHub Releases, not into git
+release/

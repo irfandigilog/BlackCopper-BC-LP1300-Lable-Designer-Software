@@ -364,6 +364,14 @@ class LabelCanvas(QGraphicsView):
                 item.set_pos_mm(el_model.x, el_model.y)
                 return
 
+    def select_item(self, id):
+        """Highlight the element with this id as the only selected item."""
+        self.scene.clearSelection()
+        for item in self.scene.items():
+            if hasattr(item, 'element_id') and item.element_id == id:
+                item.setSelected(True)
+                return
+
     def remove_item(self, id):
         for item in self.scene.items():
             if hasattr(item, 'element_id') and item.element_id == id:

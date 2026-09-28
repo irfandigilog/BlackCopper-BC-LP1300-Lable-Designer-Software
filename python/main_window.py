@@ -316,6 +316,8 @@ class MainWindow(QMainWindow):
         self.elements = []
         self.selected_id = None
         self.csv_data = None
+        self.clipboard_el = None     # deep copy of the last copied element
+        self.paste_count = 0         # cascades repeated pastes so copies don't stack
         
         # Alignment & Setup state
         self.ref_x = 0.0
@@ -608,6 +610,12 @@ class MainWindow(QMainWindow):
         self.btn_delete.setStyleSheet("background-color: #dc3545; color: white; font-weight: bold;")
         self.btn_delete.clicked.connect(self.on_delete_clicked)
         self.btn_delete.hide()
+
+        self.btn_duplicate = QPushButton("⧉ Duplicate (Ctrl+D)")
+        self.btn_duplicate.setToolTip("Duplicate selected element — or Ctrl+C then Ctrl+V")
+        self.btn_duplicate.clicked.connect(self.on_duplicate_clicked)
+        self.btn_duplicate.hide()
+        self.props_layout.addWidget(self.btn_duplicate)
         self.props_layout.addWidget(self.btn_delete)
 
         self.props_layout.addStretch()
@@ -629,6 +637,9 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("Ctrl+Z"), self).activated.connect(self.undo_stack.undo)
         QShortcut(QKeySequence("Ctrl+Y"), self).activated.connect(self.undo_stack.redo)
         QShortcut(QKeySequence("Delete"), self).activated.connect(self.on_delete_clicked)
+        QShortcut(QKeySequence("Ctrl+C"), self).activated.connect(self.on_copy_clicked)
+        QShortcut(QKeySequence("Ctrl+V"), self).activated.connect(self.on_paste_clicked)
+        QShortcut(QKeySequence("Ctrl+D"), self).activated.connect(self.on_duplicate_clicked)
 
     # -----------------------------------------------------------------------
     # Label Size
@@ -674,10 +685,12 @@ class MainWindow(QMainWindow):
         if not el_id:
             self.empty_label.show()
             self.btn_delete.hide()
+            self.btn_duplicate.hide()
             return
 
         self.empty_label.hide()
         self.btn_delete.show()
+        self.btn_duplicate.show()
         el = next((e for e in self.elements if e.id == el_id), None)
         if not el:
             return
@@ -819,6 +832,56 @@ class MainWindow(QMainWindow):
             return
         cmd = DeleteElementCommand(self, el, description="Delete Element")
         self.undo_stack.push(cmd)
+
+    # -----------------------------------------------------------------------
+    # Copy / Paste / Duplicate
+    # -----------------------------------------------------------------------
+
+    def _text_field_has_focus(self):
+        """True when the user is typing in a field, so Ctrl+C/V must stay plain text copy/paste."""
+        return isinstance(QApplication.focusWidget(), (QLineEdit, QPlainTextEdit, QTextEdit))
+
+    def on_copy_clicked(self):
+        if self._text_field_has_focus() or not self.selected_id:
+            return
+        el = next((e for e in self.elements if e.id == self.selected_id), None)
+        if el:
+            # Snapshot now, so later edits to the original don't change what gets pasted
+            self.clipboard_el = copy.deepcopy(el)
+            self.paste_count = 0
+
+    def on_paste_clicked(self):
+        if self._text_field_has_focus() or self.clipboard_el is None:
+            return
+        self.paste_count += 1
+        self._insert_copy(self.clipboard_el, 2.0 * self.paste_count)
+
+    def on_duplicate_clicked(self):
+        if not self.selected_id:
+            return
+        el = next((e for e in self.elements if e.id == self.selected_id), None)
+        if el:
+            self._insert_copy(el, 2.0)
+
+    def _insert_copy(self, source_el, shift_mm):
+        import random
+        new_el = copy.deepcopy(source_el)
+        new_el.id = f"el_{len(self.elements)}_{random.randint(0, 99999)}"
+
+        try:
+            cur_w = float(self.input_width.text() or 40)
+            cur_h = float(self.input_height.text() or 30)
+        except ValueError:
+            cur_w, cur_h = 40.0, 30.0
+
+        # Shift down-right so the copy is visible, but keep it on the label
+        new_el.x = max(0.0, min(source_el.x + shift_mm, cur_w - 2.0))
+        new_el.y = max(0.0, min(source_el.y + shift_mm, cur_h - 2.0))
+
+        cmd = AddElementCommand(self, new_el, description="Duplicate Element")
+        self.undo_stack.push(cmd)
+        self.canvas.select_item(new_el.id)
+        self.on_element_selected(new_el.id)
 
     def add_multiline_prop_control(self, label, value, callback):
         self.props_inner_layout.addWidget(QLabel(label))

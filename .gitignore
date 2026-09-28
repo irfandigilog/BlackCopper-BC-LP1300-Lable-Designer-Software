@@ -1,0 +1,28 @@
+# Build output (rebuild from the .spec files)
+build/
+build_new/
+dist/
+dist_new/
+python/build/
+python/dist/
+*.log
+
+# Python
+__pycache__/
+*.pyc
+python/venv/
+venv/
+
+# Bundled installer wheels (59 MB, re-downloadable)
+offline_packages/
+
+# Backups (git history replaces these)
+*.bak-*
+
+# Licensing secrets: the key generator and a customer licence must never be public
+python/license.bc
+python/test_keygen.py
+
+# Test scratch files
+test.png
+test_pdf.pdf

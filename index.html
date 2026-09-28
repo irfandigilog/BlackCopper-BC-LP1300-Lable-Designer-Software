@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSPL Barcode Label Designer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="glass-panel main-header">
+            <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="2" />
+                    <path d="M6 8H18M6 12H12M6 16H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                <h1>Label Studio</h1>
+            </div>
+            <div class="actions">
+                <button id="btn-calibrate" class="btn btn-secondary">Calibrate Printer</button>
+                <button id="btn-print-direct" class="btn btn-secondary">Print Label</button>
+                <button id="btn-connect" class="btn btn-primary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M6 16.5l-3 2.99M18 16.5l3 2.99M12 19v3M15 5h4v4M9 5H5v4M12 2v3M7.5 10a4.5 4.5 0 109 0 4.5 4.5 0 00-9 0z" />
+                    </svg>
+                    Connect Printer
+                </button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <aside class="sidebar glass-panel">
+                <div class="panel-section">
+                    <h2>Label Setup</h2>
+                    <div class="input-group">
+                        <label>Width (mm)</label>
+                        <input type="number" id="label-width" value="40" min="10" max="200">
+                    </div>
+                    <div class="input-group">
+                        <label>Height (mm)</label>
+                        <input type="number" id="label-height" value="30" min="10" max="200">
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h2>Add Elements</h2>
+                    <div class="tools-grid">
+                        <button id="btn-add-text" class="tool-btn">
+                            <span class="icon">T</span>
+                            Text
+                        </button>
+                        <button id="btn-add-barcode" class="tool-btn">
+                            <span class="icon">||||</span>
+                            Barcode
+                        </button>
+                        <button id="btn-add-box" class="tool-btn">
+                            <span class="icon">□</span>
+                            Box
+                        </button>
+                        <button id="btn-add-line" class="tool-btn">
+                            <span class="icon">―</span>
+                            Line
+                        </button>
+                        <button id="btn-add-circle" class="tool-btn">
+                            <span class="icon">○</span>
+                            Circle
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel-section element-properties" id="properties-panel">
+                    <h2>Properties</h2>
+                    <div class="empty-state">Select an element to edit</div>
+                    <div id="property-controls" class="hidden">
+                        <!-- Dynamically injected based on selection -->
+                    </div>
+                </div>
+            </aside>
+
+            <main class="canvas-area">
+                <div class="canvas-wrapper">
+                    <div class="ruler ruler-h"></div>
+                    <div class="ruler ruler-v"></div>
+                    <div id="label-canvas" class="label-canvas" style="width: 400px; height: 300px;">
+                        <!-- Elements rendered here -->
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal for TSPL Code -->
+    <div id="code-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>Generated TSPL</h2>
+                <button id="btn-close-modal" class="close-btn">&times;</button>
+            </div>
+            <pre id="tspl-output"></pre>
+            <div class="modal-actions">
+                <button id="btn-copy-code" class="btn btn-primary">Copy Code</button>
+                <button id="btn-print" class="btn btn-success hidden">Print via Web Serial</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
